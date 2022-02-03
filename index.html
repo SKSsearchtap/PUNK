@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+    <title>PUNK API</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300&family=Hind:wght@300&family=Island+Moments&family=Licorice&family=Oooh+Baby&display=swap"
+          rel="stylesheet">
+    <script defer src="script.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100;300&display=swap" rel="stylesheet">
+    <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.1.0/css/all.css"
+          integrity="sha512-ajhUYg8JAATDFejqbeN7KbF2zyPbbqz04dgOLyGcYEk/MJD3V+HJhJLKvJ2VVlqrr4PwHeGTTWxbI+8teA7snw=="
+          referrerpolicy="no-referrer" rel="stylesheet"/>
+</head>
+<body>
+<div v-cloak id="container" class="alpha-container">
+    <div class="pageNumber">
+        <span class="title">
+            <span v-on:click="goToHome()">PUNK<span class="subTitle"><span
+                    class="by"> BY </span> GREEN APPLE </span></span>
+        </span>
+        <label id="search" for="search"><input v-model="search" v-on:input="searchCall()" placeholder="search.."
+                                               type="text"/></label>
+    </div>
+    <div v-show="fetchError" class="error404">
+        {{fetchError}}
+    </div>
+    <div v-show="!fetchError" class="first-col">
+        <div class="st-productCount">
+            <div v-show="search.length<1&&ibuFilter.length===0&&abvFilter.length===0"
+                 class="st-textProductCount">Number Of Beers: {{countBeer}}
+            </div>
+            <div v-show="search.length>0" class="st-textProductCount">Search Results: {{beerListCount}}</div>
+            <div v-show="(ibuFilter.length!=0||abvFilter.length!=0)&&search.length<1" class="st-textProductCount">Search
+                Result: {{beerListCountForFilter}}
+            </div>
+        </div>
+        <label class="pageCount" for="pageCount">Products to Show:
+            <select v-model="perPage" name="pageCount" id="pageCount" v-on:change="checkWhichOneToCall()">
+                <option value="8">8</option>
+                <option value="12">12</option>
+                <option value="24">24</option>
+            </select>
+        </label>
+    </div>
+    <div v-show="!fetchError" class="wapperForCardAndFilters">
+        <div class="filters">
+            <div v-show="beerList.length>0" class="filterInner">
+                <div class="filterTitle">FILTERS
+                    <button v-show="ibuFilter.length>0||abvFilter.length>0" class="clearFilterStyle" id="clearFilter"
+                            v-on:click="clearFilter(),abvFilter='',ibuFilter='',checkWhichOneToCall()"
+                            v-on:change="checkWhichOneToCall()">CLEAR ALL
+                    </button>
+                </div>
+                <div class="category">
+                    <div class="categoryTitle" v-on:click="showAbv=!showAbv">
+                        <div class="categoryName" >ALCOHOL VOL.</div>
+                        <i :class= "[(showAbv ? 'fa-chevron-up' : 'fa-chevron-down'),'fas arrows-for-filter']" ></i>
+                        <button v-show="abvFilter.length>0"
+                                class="clearFilterAbvStyle" id="clearFilterAbv"
+                                v-on:click="abvFilter='',checkWhichOneToCall()">CLEAR
+                        </button>
+                    </div>
+                    <div class="wrapper-for-category" v-if="showAbv">
+                        <div class="categoryOptions">
+                            <label for="&abv_gt=0&abv_it=4">
+                                <input id="&abv_gt=0&abv_it=4" value="&abv_gt=0&abv_lt=4" class="filterCheck"
+                                       type="radio" name="alcohol" v-model="abvFilter"
+                                       v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">0% to 4%</span>
+                            </label>
+                        </div>
+                        <div class="categoryOptions">
+                            <label for="&abv_gt=4&abv_it=8">
+                                <input id="&abv_gt=4&abv_it=8" value="&abv_gt=4&abv_lt=8" class="filterCheck"
+                                       type="radio"
+                                       name="alcohol" v-model="abvFilter" v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">4% to 8%</span>
+                            </label>
+                        </div>
+                        <div class="categoryOptions">
+                            <label for="&abv_gt=8&abv_it=12">
+                                <input id="&abv_gt=8&abv_it=12" value="&abv_gt=8&abv_lt=12" class="filterCheck"
+                                       type="radio" name="alcohol" v-model="abvFilter" v-on:click="abv_lt=8,abv_lt=12"
+                                       v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">8% to 12%</span>
+                            </label>
+                        </div>
+                        <div class="categoryOptions">
+                            <label for="&abv_gt=12&abv_it=16">
+                                <input id="&abv_gt=12&abv_it=16" value="&abv_gt=12&abv_lt=16" class="filterCheck"
+                                       type="radio" name="alcohol" v-model="abvFilter"
+                                       v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">12% to 16%</span>
+                            </label>
+                        </div>
+                        <div class="categoryOptions">
+                            <label for="&abv_gt=16">
+                                <input id="&abv_gt=16" value="&abv_gt=16" class="filterCheck"
+                                       type="radio" name="alcohol" v-model="abvFilter"
+                                       v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">More than 16%</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="category">
+                    <div class="categoryTitle" v-on:click="showIbu=!showIbu">
+                        <div class="categoryName">HOPINESS(IBU)</div>
+                        <i :class= "[(showIbu ? 'fa-chevron-up' : 'fa-chevron-down'),'fas arrows-for-filter']"></i>
+                        <button v-show="ibuFilter.length>0" class="clearFilterIbuStyle"
+                                id="clearFilterIbu" v-on:click="ibuFilter='',checkWhichOneToCall()">CLEAR
+                        </button>
+                    </div>
+                    <div class="wrapper-for-category" v-if="showIbu">
+                        <div class="categoryOptions">
+                            <label for="&ibu_gt=0&ibu_lt=40">
+                                <input v-model="ibuFilter" id="&ibu_gt=0&ibu_lt=40" value="&ibu_gt=0&ibu_lt=40"
+                                       class="filterCheck"
+                                       type="radio" name="ibu" v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">0 to 40</span>
+                            </label>
+                        </div>
+                        <div class="categoryOptions">
+                            <label for="&ibu_gt=40&ibu_lt=80">
+                                <input v-model="ibuFilter" id="&ibu_gt=40&ibu_lt=80" value="&ibu_gt=40&ibu_lt=80"
+                                       class="filterCheck" type="radio" name="ibu" v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">40 to 80</span>
+                            </label>
+                        </div>
+                        <div class="categoryOptions">
+                            <label for="&ibu_gt=80&ibu_lt=120">
+                                <input v-model="ibuFilter" id="&ibu_gt=80&ibu_lt=120" value="&ibu_gt=40&ibu_lt=60"
+                                       class="filterCheck"
+                                       type="radio" name="ibu" v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">80 to 120</span>
+                            </label>
+                        </div>
+                        <div class="categoryOptions">
+                            <label for="&ibu_gt=120&ibu_lt=150">
+                                <input v-model="ibuFilter" id="&ibu_gt=120&ibu_lt=150" value="&ibu_gt=120&ibu_lt=150"
+                                       class="filterCheck"
+                                       type="radio" name="ibu" v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">120 to 150</span>
+                            </label>
+                        </div>
+                        <div class="categoryOptions">
+                            <label for="&ibu_gt=150">
+                                <input v-model="ibuFilter" id="&ibu_gt=150" value="&ibu_gt=150" class="filterCheck"
+                                       type="radio" name="ibu" v-on:change="checkWhichOneToCall()">
+                                <span class="checkbox"><i class="fas fa-check"></i></span>
+                                <span class="filterItem">More than 150</span>
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div v-cloak class="wrapper">
+            <div v-for="beers in beerList" :key="beers.id" class="card" id="card">
+                <div v-cloak class="wrapper-for-card">
+                    <div class="imgHolder">
+                        <div id="id">{{ beers.id}}</div>
+                        <img class="imageOfBeer" alt="beerImage" id="image" v-bind:src=beers.image_url
+                             v-if=beers.image_url>
+                        <img class="imageOfBeer"
+                             src="https://images.unsplash.com/photo-1567696911980-2eed69a46042?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8N3x8YmVlcnxlbnwwfHwwfHw%3D&w=1000&q=80"
+                             alt="beerImage" v-else>
+                    </div>
+                    <div id="titleOfBeer">{{ beers.name }}</div>
+                    <div class="filterProperty">
+                        <div v-show="beers.abv>0" id="abv"> ABV : {{ beers.abv }}%</div>
+                        <div v-show="beers.ibu>0" id="ibu"> IBU : {{ beers.ibu }}</div>
+                    </div>
+                    <div class="priceTag">
+                        <div class="discountPrice">₹{{beers.target_fg}}</div>
+                        <div class="actualPrice">₹{{beers.target_og}}</div>
+                    </div>
+                </div>
+            </div>
+            <div v-cloak v-show="beerList.length<1&&countBeer===325" class="noResultFound">
+                <div class="warningText">No results Found For {{search}} Go Back To Home Page →
+                    <div class="goToHome">
+                        <button id="homeButton" class="homeButton" v-on:click="goToHome()">HOME</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <pagination v-show="search.length<1&&ibuFilter.length===0&&abvFilter.length===0" id="pagniationPanel"
+                :total-pages="totalPageCreated"
+                :total="countBeer"
+                :per-page="perPage"
+                :current-page="currentPage"
+                :disable-class="disableVariable"
+                @pagechanged="onPageChange">
+        <script type="text/x-template" id="pagination">
+            <nav aria-label="...">
+                <ul class="pagination justify-content-center">
+                    <li v-show="currentPage>1" v-bind:class="[currentPage === 1 ? disableClass : '','page-item']">
+                        <a class="page-link" @click="onClickFirstPage" aria-label="Go to first page">
+                            First
+                        </a>
+                    </li>
+                    <li v-bind:class="[currentPage === 1 ? disableClass : '','page-item']" v-show="currentPage > 1">
+                        <a class="page-link" @click="onClickPreviousPage"
+                           aria-label="Go to previous page">
+                            Previous
+                        </a>
+                    </li>
+
+                    <li v-for="page in pages" :class="[{ active: isPageActive(page.name) },'page-item']">
+                        <a :class="[{ numberActive: isPageActive(page.name) },'page-link']"
+                           @click="onClickPage(page.name)"
+                           :aria-label="`Go to page number ${page.name}`">
+                            {{ page.name }}
+                        </a>
+                    </li>
+
+                    <li class="page-item">
+                        <a class="page-link" @click="onClickNextPage" v-show="currentPage < totalPages"
+                           aria-label="Go to next page">
+                            Next
+                        </a>
+                    </li>
+
+                    <li :class="[currentPage === totalPages ? disableClass : '','page-item']"
+                        v-show="currentPage<totalPages">
+                        <a class="page-link" @click="onClickLastPage" aria-label="Go to last page">
+                            Last
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </script>
+    </pagination>
+    <div v-show="search.length>0||ibuFilter.length!=0||abvFilter.length!=0" class="pageCountButton">
+        <button class="pageNumberIndexLeftArrow" id="pageNumberIndexLeftArrow"
+                v-show="page>1" v-on:click="checkWhichOneToCallForToggle(page--),checkToggleButton(),getToTop()"><
+        </button>
+        <button class="pageNumberIndexRightArrow" id="pageNumberIndexRightArrow"
+                v-show="counterForToggle.length>0"
+                v-on:click="checkWhichOneToCallForToggle(page++),checkToggleButton(),getToTop()">>
+        </button>
+    </div>
+</div>
+</body>
+</html>
